@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+* {
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font: 400 14px Roboto, sans-serif;
+    background: #f0f0f5;
+    -webkit-font-smoothing: antialiased;
+}
+
+input, button, textarea, .MuiInputBase-input {
+    font: 400 18px Roboto, sans-serif !important;
+}
+
+input, .MuiInputBase-input, textarea {
+    background: #fff !important;
+}
+
+.container-global {
+    padding: 5px 10px 5px 10px;
+    flex-grow: 1;
+    overflow: auto;
+    height: calc(100vh - 95px);
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-row-w {
+    @extend .flex-row;
+    width: 100%;
+}
+
+.flex-col-h {
+    @extend .flex-col;
+    height: 100%;
+}
+
+.MuiBottomNavigationAction-root.Mui-selected {
+    color: #4caf50 !important;
+}
+
+.swal2-container.swal2-center {
+    z-index: 9999;
+}
+
+.btn-action {
+    background: #4caf50 !important;
+    color: #ffff !important;
+}
+
+#form-modal {
+    border-radius: 8px !important;
+    border: 1.5px solid #3f51b5 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+#form-modal h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #3f51b5;
+}
+
+.btn-icon-edit svg{
+    color: #4caf50;
+}
+
+.btn-icon-del svg {
+    color: #f50057;
+}
+
+.content-text {
+    font-weight: bold;
+}
+
+.content-actions {
+    flex: 0;
+    margin-right: 10px;
+}
+
+.header-action {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0 10px 0;
+}
