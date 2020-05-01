@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { format, endOfMonth, startOfMonth, addDays, getDaysInMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { makeStyles } from '@material-ui/core/styles';
-import { IconButton } from '@material-ui/core';
-import { Delete, Edit } from '@material-ui/icons';
 import {
     TextField, Button, Select,
     InputLabel, MenuItem, FormControl
 } from '@material-ui/core';
 import ReactHtmlParser from 'react-html-parser';
 
-import ModalQuery from '../../components/ModalQuery';
+import ModalAppointment from '../../components/ModalAppointment';
 
 import api from '../../services/api';
 import swal from '../../services/swal';
@@ -19,7 +17,6 @@ import './styles.scss'
 
 const useStyles = makeStyles((theme) => ({
     formControl: {
-        // margin: theme.spacing(1),
         minWidth: 120,
         paddingLeft: 5,
         paddingRight: 5,
@@ -27,12 +24,12 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function QueryCalendar() {
-    const [queryList, setQueryList] = useState([]);
-    const [medicList, setMedicList] = useState([]);
+export default function AppointmentsCalendar() {
+    const [appointmentList, setAppointmentList] = useState([]);
+    const [doctorList, setDoctorList] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const [queryEditId, setQueryEditId] = useState(0);
-    const [medicId, setMedicId] = useState(0);
+    const [appointmentId, setAppointmentId] = useState(0);
+    const [doctorId, setDoctorId] = useState(0);
     const [today, setToday] = useState(new Date());
     const classes = useStyles();
 
@@ -44,25 +41,23 @@ export default function QueryCalendar() {
     useEffect(() => {
         getListQuery();
 
-    }, [today, medicId]);
+    }, [today, doctorId]);
 
     async function getListQuery() {
         try {
-            setQueryEditId(0);
+            setAppointmentId(0);
             const start = startOfMonth(new Date(today)),
                 end = endOfMonth(new Date(today));
 
             const query = await api.get(
-                `consultations` +
-                `?date_gte=${format(start,'yyyy-MM-dd')}` +
-                `&date_lte=${format(end, 'yyyy-MM-dd')}` +
-                `${medicId > 0 ? `&medicId=${medicId}` : ''}` +
-                `&_expand=medic` +
-                `&_sort=date&_order=asc`
+                `appointments/byDate` +
+                `?start=${format(start,'yyyy-MM-dd 00:00')}` +
+                `&end=${format(end, 'yyyy-MM-dd 23:59')}` +
+                `${doctorId > 0 ? `&doctorId=${doctorId}` : ''}`
             );
 
-            if (query) setQueryList(query.data);
-            else swal.swalErrorInform(null, 'Houve um problema ao trazer a agenda de consultas.');
+            const { status } = query.data;
+            if (status) setAppointmentList(query.data.response);
 
         } catch (error) {
             console.log(error);
@@ -72,10 +67,11 @@ export default function QueryCalendar() {
 
     async function getListMedics() {
         try {
-            const query = await api.get('medics');
+            const query = await api.get('doctors');
 
-            if (query.data) {
-                setMedicList(query.data);
+            const { status } = query.data;
+            if (status) {
+                setDoctorList(query.data.response);
             }
 
         } catch (error) {
@@ -88,12 +84,15 @@ export default function QueryCalendar() {
     };
 
     function handleNewQuery() {
-        setQueryEditId(0)
+        setAppointmentId(0)
         setShowModal(true);
     }
 
     function MountCalendar() {
-        const week = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
+        const week = [
+            'domingo', 'segunda', 'terça', 'quarta', 
+            'quinta', 'sexta', 'sábado'
+        ];
         let bodyTmp = '<tr>', count = 0;
         const day = new Date(today);
         day.setDate(1);
@@ -109,10 +108,10 @@ export default function QueryCalendar() {
             
             let control = true, query = ''
             do {
-                if(queryList[count]) {
-                    const { date } = queryList[count];
+                if(appointmentList[count]) {
+                    const { date } = appointmentList[count];
                     if(format(new Date(date), 'dd') === (i + '').padStart(2, '0')) {
-                        const { patientName } = queryList[count];
+                        const { patientName } = appointmentList[count];
                         query += 
                             `<span>
                                 <strong>${format(new Date(date), 'HH:mm')}</strong> - ${patientName}
@@ -178,17 +177,17 @@ export default function QueryCalendar() {
 
                 <div className="header-query-content">
                     <FormControl variant="outlined" style={{ flex: 2 }}>
-                        <InputLabel id="medicId" className={classes.formControl}>Filtrar por médico</InputLabel>
+                        <InputLabel id="doctorId" className={classes.formControl}>Filtrar por médico</InputLabel>
                         <Select
                             required
                             fullWidth
                             labelId="Medico"
-                            id="medicId"
-                            value={medicId}
-                            onChange={e => setMedicId(e.target.value)}
+                            id="doctorId"
+                            value={doctorId}
+                            onChange={e => setDoctorId(e.target.value)}
                         >
                             <MenuItem value={0}>Todos</MenuItem>
-                            {medicList.map(el => (
+                            {doctorList.map(el => (
                                 <MenuItem key={el.id} value={el.id}>{el.name}</MenuItem>
                             ))}
                         </Select>
@@ -206,10 +205,10 @@ export default function QueryCalendar() {
             </div>
             <MountCalendar />
 
-            <ModalQuery
+            <ModalAppointment
                 showModal={showModal}
                 setShowModal={setShowModal}
-                id={queryEditId}
+                id={appointmentId}
                 reloadListFunction={getListQuery} />
         </>
     )

@@ -11,7 +11,7 @@ module.exports = {
             
         } catch (error) {
             console.log(error);
-            return res.json({ status: false, response: error });
+            return res.status(500).json({ status: false, response: error });
         }
     },
 
@@ -27,7 +27,7 @@ module.exports = {
             
         } catch (error) {
             console.log(error);
-            return res.json({ status: false, response: error });
+            return res.status(500).json({ status: false, response: error });
         }
     },
 
@@ -40,12 +40,29 @@ module.exports = {
             const query = await connection('doctors')
             .limit(10)
             .offset((page - 1) * 10)
+            .orderBy('name', 'asc');
     
             return res.json({status: true, response: query, count});
             
         } catch (error) {
             console.log(error);
-            return res.json({ status: false, response: error });
+            return res.status(500).json({ status: false, response: error });
+        }
+    },
+
+    async indexByName(req, res) {
+        try {
+            const { name } = req.query;
+    
+            const query = await connection('doctors')
+            .where('name', 'like', name)
+            .limit(1);
+    
+            return res.json({status: true, response: query});
+            
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ status: false, response: error });
         }
     },
 
@@ -53,14 +70,15 @@ module.exports = {
         try {
             const { id } = req.params;
     
-            const query = await connection('doctors')
-            .where({ id });
+            const [query] = await connection('doctors')
+            .where({ id })
+            .limit(1);
     
             return res.json({status: true, response: query});
             
         } catch (error) {
             console.log(error);
-            return res.json({ status: false, response: error });
+            return res.status(500).json({ status: false, response: error });
         }
     },
 
@@ -76,7 +94,7 @@ module.exports = {
             
         } catch (error) {
             console.log(error);
-            return res.json({ status: false, response: error });
+            return res.status(500).json({ status: false, response: error });
         }
     }
 }

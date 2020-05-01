@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import {
     Modal, Backdrop, Fade, TextField, Button
 } from '@material-ui/core';
-import { format } from 'date-fns';
+import { format, compareAsc } from 'date-fns';
 
 import api from '../../services/api';
 import swal from '../../services/swal';
@@ -26,7 +26,10 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function ModalMedic({ showModal, setShowModal, id, reloadListFunction }) {
+export default function ModalMedic({ 
+        showModal, setShowModal, id, 
+        reloadListFunction, clearId
+}) {
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [checkIn, setCheckIn] = useState(format(new Date(), 'HH:mm'));
@@ -50,10 +53,11 @@ export default function ModalMedic({ showModal, setShowModal, id, reloadListFunc
     async function getMedic() {
         setLoading(true);
         try {
-            const query = await api.get(`medics/${id}`);
+            const query = await api.get(`doctors/${id}`);
  
-            if (query) {
-                const { name, phone, checkIn, checkOut } = query.data;
+            const { status } = query.data;
+            if (status) {
+                const { name, phone, checkIn, checkOut } = query.data.response;
 
                 setName(name);
                 setNameTmp(name);
@@ -75,7 +79,7 @@ export default function ModalMedic({ showModal, setShowModal, id, reloadListFunc
     async function handleSubmit(event) {
         event.preventDefault();
 
-        if (await checkNameMedic()) {
+        if (await checkNameMedic() && checkCheckInCheckOut()) {
             setLoading(true);
             try {
                 const data = {
@@ -86,8 +90,8 @@ export default function ModalMedic({ showModal, setShowModal, id, reloadListFunc
                 }
 
                 let query = null;
-                if (id > 0) query = await api.put(`medics/${id}`, data);
-                else query = await api.post('medics', data);
+                if (id > 0) query = await api.put(`doctors/${id}`, { data });
+                else query = await api.post('doctors', { data });
 
                 if (query) {
                     swal.swalInform();
@@ -110,6 +114,22 @@ export default function ModalMedic({ showModal, setShowModal, id, reloadListFunc
         setCheckIn(format(new Date(), 'HH:mm'));
         setCheckOut(format(new Date(), 'HH:mm'));
         setNameTmp(null);
+        if(clearId) clearId();
+    }
+
+    function checkCheckInCheckOut() {
+        let work = true;
+
+        if(compareAsc(new Date(`1990-07-28 ${checkIn}`),
+        new Date(`1990-07-28 ${checkOut}`) ) >= 0) {
+            work = false;
+            swal.swalErrorInform(
+                null, 
+                'O horário de entrada deve ser menor que o horário de saida.'
+            );
+        }
+        
+        return work;
     }
 
     async function checkNameMedic() {
@@ -117,11 +137,15 @@ export default function ModalMedic({ showModal, setShowModal, id, reloadListFunc
 
         if (name !== nameTmp) {
             try {
-                const query = await api.get(`medics?name_like=${name}`);
+                const query = await api.get(`doctors/byName`, { params: { name }});
 
-                if (query.data.length > 0) {
+                const { status, response } = query.data;
+                if (status && response.length > 0) {
                     work = false;
-                    swal.swalErrorInform(null, 'Este nome já está sendo utilizado. Por favor, use outro nome');
+                    swal.swalErrorInform(
+                        null, 
+                        'Este nome já está sendo utilizado. Por favor, use outro nome'
+                    );
                 }
 
             } catch (error) {

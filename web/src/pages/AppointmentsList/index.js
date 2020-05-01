@@ -8,7 +8,7 @@ import {
     InputLabel, MenuItem, FormControl
 } from '@material-ui/core';
 
-import ModalQuery from '../../components/ModalQuery';
+import ModalAppointment from '../../components/ModalAppointment';
 import Load from '../../components/Load';
 
 import api from '../../services/api';
@@ -18,7 +18,6 @@ import './styles.scss'
 
 const useStyles = makeStyles((theme) => ({
     formControl: {
-        // margin: theme.spacing(1),
         minWidth: 120,
         paddingLeft: 5,
         paddingRight: 5,
@@ -26,42 +25,44 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function Query() {
-    const [queryList, setQueryList] = useState([]);
-    const [medicList, setMedicList] = useState([]);
+export default function AppointmentsList() {
+    const [appointmentList, setAppointmentList] = useState([]);
+    const [doctorList, setDoctorList] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const [queryEditId, setQueryEditId] = useState(0);
-    const [medicId, setMedicId] = useState(0);
+    const [editId, setEditId] = useState(0);
+    const [doctorId, setDoctorId] = useState(0);
     const [dateStart, setDateStart] = useState(startOfMonth(new Date()));
     const [dateEnd, setDateEnd] = useState(endOfMonth(new Date()));
     const [loading, setLoading] = useState(false);
     const classes = useStyles();
 
     useEffect(() => {
-        getListMedics();
+        getDoctorList();
 
     }, [])
 
     useEffect(() => {
         getListQuery();
 
-    }, [dateStart, dateEnd, medicId]);
+    }, [dateStart, dateEnd, doctorId]);
 
     async function getListQuery() {
         setLoading(true);
 
         try {
-            setQueryEditId(0);
+            setEditId(0);
             const query = await api.get(
-                `consultations` +
-                `?date_gte=${format(dateStart, 'yyyy-MM-dd')}` +
-                `&date_lte=${format(dateEnd, 'yyyy-MM-dd')}` +
-                `${medicId > 0 ? `&medicId=${medicId}` : ''}` +
-                `&_expand=medic` +
-                `&_sort=date&_order=asc`
+                `appointments/byDate` +
+                `?start=${format(dateStart, 'yyyy-MM-dd 00:00')}` +
+                `&end=${format(dateEnd, 'yyyy-MM-dd 23:59')}` +
+                `${doctorId > 0 ? `&doctorId=${doctorId}` : ''}`
             );
 
-            if (query) setQueryList(query.data);
+            const { status } = query.data;
+            if (status) {
+                const { response } = query.data;
+                setAppointmentList(response);
+            }
             else swal.swalErrorInform(null, 'Houve um problema ao trazer a agenda de consultas.');
 
         } catch (error) {
@@ -72,21 +73,23 @@ export default function Query() {
         setLoading(false);
     };
 
-    async function getListMedics() {
+    async function getDoctorList() {
         setLoading(true);
 
         try {
-            const query = await api.get('medics');
+            const query = await api.get('doctors');
 
-            if (query.data) {
-                setMedicList(query.data);
+            const { status } = query.data;
+            if (status) {
+                const { response } = query.data;
+                setDoctorList(response);
             }
 
         } catch (error) {
             console.log(error);
             swal.swalErrorInform(
                 null,
-                'Houve um problem ao trazer a lista de médicos. Por favor, tente novamente'
+                'Houve um problema ao trazer a lista de médicos. Por favor, tente novamente'
             );
         }
 
@@ -94,13 +97,17 @@ export default function Query() {
     };
 
     function handleEditQuery(id) {
-        setQueryEditId(id)
+        setEditId(id)
         setShowModal(true);
     }
 
     function handleNewQuery() {
-        setQueryEditId(0)
+        setEditId(0)
         setShowModal(true);
+    }
+    
+    function clearId() {
+        setEditId(0);
     }
 
     async function handleDeleteQuery(id) {
@@ -109,9 +116,10 @@ export default function Query() {
         if (resp) {
             setLoading(true);
             try {
-                const query = await api.delete(`consultations/${id}`);
+                const query = await api.delete(`appointments/${id}`);
 
-                if (query) {
+                const { status } = query.data;
+                if (status) {
                     getListQuery();
                     swal.swalInform(null, 'Consulta excluída com sucesso');
                 }
@@ -154,17 +162,17 @@ export default function Query() {
 
                 <div className="header-query-content">
                     <FormControl variant="outlined" style={{ flex: 2 }}>
-                        <InputLabel id="medicId" className={classes.formControl}>Filtrar por médico</InputLabel>
+                        <InputLabel id="doctorId" className={classes.formControl}>Filtrar por médico</InputLabel>
                         <Select
                             required
                             fullWidth
                             labelId="Medico"
-                            id="medicId"
-                            value={medicId}
-                            onChange={e => setMedicId(e.target.value)}
+                            id="doctorId"
+                            value={doctorId}
+                            onChange={e => setDoctorId(e.target.value)}
                         >
                             <MenuItem value={0}>Todos</MenuItem>
-                            {medicList.map(el => (
+                            {doctorList.map(el => (
                                 <MenuItem key={el.id} value={el.id}>{el.name}</MenuItem>
                             ))}
                         </Select>
@@ -181,8 +189,7 @@ export default function Query() {
                 </div>
             </div>
 
-            {queryList.map(item => {
-                const { medic } = item;
+            {appointmentList.map(item => {
                 return (
                     <div className="flex-col content-query" key={item.id}>
                         <div className="flex-row">
@@ -195,10 +202,10 @@ export default function Query() {
                                 <span>
                                     Paciente: <span className="content-text">{item.patientName}</span>
                                     &nbsp;
-                                    Contato: <span className="content-text">{item.phone}</span>
+                                    Contato: <span className="content-text">{item.patinetPhone}</span>
                                 </span>
                                 <span>
-                                    Médico: <span className="content-text">{medic.name}</span>
+                                    Médico: <span className="content-text">{item.doctorName}</span>
                                 </span>
                             </div>
 
@@ -227,10 +234,11 @@ export default function Query() {
                     </div>
                 )
             })}
-            <ModalQuery
+            <ModalAppointment
                 showModal={showModal}
                 setShowModal={setShowModal}
-                id={queryEditId}
+                id={editId}
+                clearId={clearId}
                 reloadListFunction={getListQuery} />
         </>
     )

@@ -30,11 +30,13 @@ export default function Medic() {
     async function getListMedics() {
         setLoading(true);
         try {
-            const query = await api.get('medics?_sort=name&_order=asc');
+            const query = await api.get('doctors');
 
-            if (query) {
-                setMedicList(query.data);
-                setMedicListFull(query.data);
+            const { status } = query.data;
+            if (status) {
+                const { response } = query.data;
+                setMedicList(response);
+                setMedicListFull(response);
             }
 
         } catch (error) {
@@ -54,15 +56,20 @@ export default function Medic() {
         setShowModal(true);
     }
 
+    function clearId() {
+        setMedicEditId(0);
+    }
+
     async function handleDeleteMedic(id) {
         const resp = await swal.swalConfirm(null, 'Gostaria de excluir este médico?');
 
         if (resp) {
             setLoading(true);
             try {
-                const query = await api.delete(`medics/${id}`);
+                const query = await api.delete(`doctors/${id}`);
 
-                if (query) {
+                const { status } = query.data;
+                if (status) {
                     getListMedics();
                     swal.swalInform(null, 'Médico excluído com sucesso');
                 }
@@ -156,6 +163,7 @@ export default function Medic() {
                 showModal={showModal}
                 setShowModal={setShowModal}
                 id={medicEditId}
+                clearId={clearId}
                 reloadListFunction={getListMedics} />
         </>
     )

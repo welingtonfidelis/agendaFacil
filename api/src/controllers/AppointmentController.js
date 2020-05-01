@@ -11,7 +11,7 @@ module.exports = {
             
         } catch (error) {
             console.log(error);
-            return res.json({ status: false, response: error });
+            return res.status(500).json({ status: false, response: error });
         }
     },
 
@@ -27,7 +27,7 @@ module.exports = {
             
         } catch (error) {
             console.log(error);
-            return res.json({ status: false, response: error });
+            return res.status(500).json({ status: false, response: error });
         }
     },
 
@@ -45,7 +45,37 @@ module.exports = {
             
         } catch (error) {
             console.log(error);
-            return res.json({ status: false, response: error });
+            return res.status(500).json({ status: false, response: error });
+        }
+    },
+
+    async indexByDate(req, res) {
+        try {
+            const { start, end, doctorId } = req.query;
+
+
+            let query = null;
+            if(doctorId) {
+                query = await connection('appointments')
+                    .whereBetween('date', [start, end])
+                    .where({ doctorId })
+                    .join('doctors', 'doctors.id', '=', 'appointments.doctorId')
+                    .select(['appointments.*', 'doctors.name as doctorName'])
+                    .orderBy('date', 'asc');
+            }
+            else {
+                query = await connection('appointments')
+                    .whereBetween('date', [start, end])
+                    .join('doctors', 'doctors.id', '=', 'appointments.doctorId')
+                    .select(['appointments.*', 'doctors.name as doctorName'])
+                    .orderBy('date', 'asc');
+            }
+    
+            return res.json({status: true, response: query});
+            
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ status: false, response: error });
         }
     },
 
@@ -53,14 +83,15 @@ module.exports = {
         try {
             const { id } = req.params;
     
-            const query = await connection('appointments')
-            .where({ id });
+            const [query] = await connection('appointments')
+            .where({ id })
+            .limit(1);
     
             return res.json({status: true, response: query});
             
         } catch (error) {
             console.log(error);
-            return res.json({ status: false, response: error });
+            return res.status(500).json({ status: false, response: error });
         }
     },
 
@@ -76,7 +107,7 @@ module.exports = {
             
         } catch (error) {
             console.log(error);
-            return res.json({ status: false, response: error });
+            return res.status(500).json({ status: false, response: error });
         }
     }
 }

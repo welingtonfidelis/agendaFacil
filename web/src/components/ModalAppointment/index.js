@@ -4,7 +4,10 @@ import {
     Modal, Backdrop, Fade, TextField,
     Button, Select, InputLabel, MenuItem
 } from '@material-ui/core';
-import { format, addMinutes, subMinutes, isEqual, compareAsc } from 'date-fns';
+import { 
+    format, addMinutes, subMinutes, 
+    isEqual, compareAsc 
+} from 'date-fns';
 
 import Load from '../Load';
 
@@ -27,11 +30,14 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function ModalQuery({ showModal, setShowModal, id, reloadListFunction }) {
+export default function ModalAppointment({ 
+        showModal, setShowModal, id, 
+        reloadListFunction, clearId
+    }) {
     const [patientName, setPatientName] = useState('');
-    const [phone, setPhone] = useState('');
-    const [medicId, setMedicId] = useState(0);
-    const [listMedic, setListMedic] = useState([]);
+    const [patientPhone, setPatientPhone] = useState('');
+    const [doctorId, setDoctorId] = useState('');
+    const [doctorList, setDoctorList] = useState([]);
     const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [hour, setHour] = useState(format(new Date(), 'HH:mm'));
     const [dateTmp, setDateTmp] = useState(null);
@@ -51,11 +57,13 @@ export default function ModalQuery({ showModal, setShowModal, id, reloadListFunc
     async function getListMedics() {
         setLoading(true);
         try {
-            const query = await api.get('medics');
+            const query = await api.get('doctors');
 
-            if (query.data) {
-                setListMedic(query.data);
-                setMedicId(query.data[0].id);
+            const { status } = query.data;
+            if (status) {
+                const { response } = query.data;
+                setDoctorList(response);
+                if(response.length > 0) setDoctorId(response[0].id);
             }
 
         } catch (error) {
@@ -71,18 +79,18 @@ export default function ModalQuery({ showModal, setShowModal, id, reloadListFunc
     async function getQuery() {
         setLoading(true);
         try {
-            const query = await api.get(`consultations/${id}`);
+            const query = await api.get(`appointments/${id}`);
 
-            if (query) {
-                const { patientName, phone, date, medicId } = query.data;
-                console.log('data', date.split(' '));
+            const { status } = query.data;
+            if (status) {
+                const { response } = query.data;
 
-                setPatientName(patientName);
-                setPhone(phone);
-                setDate(format(new Date((date)), 'yyyy-MM-dd'));
-                setDateTmp(format(new Date((date)), 'yyyy-MM-dd HH:mm'));
-                setHour(format(new Date((date)), 'HH:mm'));
-                setMedicId(medicId);
+                setPatientName(response.patientName);
+                setPatientPhone(response.patientPhone);
+                setDate(format(new Date((response.date)), 'yyyy-MM-dd'));
+                setDateTmp(format(new Date((response.date)), 'yyyy-MM-dd HH:mm'));
+                setHour(format(new Date((response.date)), 'HH:mm'));
+                setDoctorId(response.doctorId);
             }
 
         } catch (error) {
@@ -96,55 +104,59 @@ export default function ModalQuery({ showModal, setShowModal, id, reloadListFunc
     }
 
     function handleClose() {
+        clearFields();
         setShowModal(false);
     };
 
     async function handleSubmit(event) {
         event.preventDefault();
-
-        if (checkHourMedic() && await checkDateQuery()) {
-            setLoading(true);
-            try {
-                const data = {
-                    patientName,
-                    phone,
-                    date: format(new Date(`${date} ${hour}`), 'yyyy-MM-dd HH:mm'),
-                    medicId
+        if(doctorId !== '') {
+            if (checkHourMedic() && await checkDateQuery()) {
+                setLoading(true);
+                try {
+                    const data = {
+                        patientName,
+                        patientPhone,
+                        date: format(new Date(`${date} ${hour}`), 'yyyy-MM-dd HH:mm'),
+                        doctorId
+                    }
+    
+                    let query = null;
+                    if (id > 0) query = await api.put(`appointments/${id}`, { data });
+                    else query = await api.post('appointments', { data });
+    
+                    if (query) {
+                        swal.swalInform();
+                        clearFields();
+                        reloadListFunction();
+                        handleClose();
+                    }
+    
+                } catch (error) {
+                    console.log(error);
+                    swal.swalErrorInform();
                 }
-
-                let query = null;
-                if (id > 0) query = await api.put(`consultations/${id}`, data);
-                else query = await api.post('consultations', data);
-
-                if (query) {
-                    swal.swalInform();
-                    clearFields();
-                    reloadListFunction();
-                    handleClose();
-                }
-
-            } catch (error) {
-                console.log(error);
-                swal.swalErrorInform();
+                setLoading(false);
             }
-            setLoading(false);
         }
+        else swal.swalErrorInform();
     }
 
     function clearFields() {
         setPatientName('');
-        setPhone('');
-        setMedicId(0);
+        setPatientPhone('');
+        setDoctorId('');
         setDate(format(new Date(), 'yyyy-MM-dd'));
         setHour(format(new Date(), 'HH:mm'));
         setDateTmp(null);
+        if(clearId) clearId();
     }
 
     function checkHourMedic() {
         let work = true;
 
-        for (const item of listMedic) {
-            if (item.id === medicId) {
+        for (const item of doctorList) {
+            if (item.id === doctorId) {
                 if (compareAsc(
                     new Date(`1990-07-28 ${hour}`),
                     new Date(`1990-07-28 ${item.checkIn}`)) >= 0) {
@@ -174,20 +186,22 @@ export default function ModalQuery({ showModal, setShowModal, id, reloadListFunc
 
         try {
             let dateQuery = new Date(`${date} ${hour}`),
-                dateStart = subMinutes(dateQuery, 30),
-                dateEnd = addMinutes(dateQuery, 30);
+                start = subMinutes(dateQuery, 30),
+                end = addMinutes(dateQuery, 30);
 
             const query = await api.get(
-                `consultations` +
-                `?date_gte=${format(dateStart, 'yyyy-MM-dd HH:mm')}` +
-                `&date_lte=${format(dateEnd, 'yyyy-MM-dd HH:mm')}` +
-                `&medicId=${medicId}`
+                `appointments/byDate` +
+                `?start=${format(start, 'yyyy-MM-dd HH:mm')}` +
+                `&end=${format(end, 'yyyy-MM-dd HH:mm')}` +
+                `&doctorId=${doctorId}`
             );
 
-            if (query.data && query.data.length > 0) {
-                for (const el of query.data) {
-                    console.log(dateTmp, dateQuery, el.date);
+            const { status } = query.data;
 
+            if (status) {
+                const { response } = query.data;
+
+                for (const el of response) {
                     if (!isEqual(new Date(el.date), new Date(dateTmp))
                         && isEqual(new Date(el.date), new Date(dateQuery))) {
                         free = false;
@@ -236,16 +250,16 @@ export default function ModalQuery({ showModal, setShowModal, id, reloadListFunc
                         <h2>{id > 0 ? "Editar consulta" : "Cadastrar consulta"}</h2>
 
                         <div className="input-space">
-                            <InputLabel id="medicId">Médico</InputLabel>
+                            <InputLabel id="doctorId">Médico</InputLabel>
                             <Select
                                 required
                                 fullWidth
-                                labelId="medicId"
-                                id="medicId"
-                                value={medicId}
-                                onChange={e => setMedicId(e.target.value)}
+                                labelId="doctorId"
+                                id="doctorId"
+                                value={doctorId}
+                                onChange={e => setDoctorId(e.target.value)}
                             >
-                                {listMedic.map(el => (
+                                {doctorList.map(el => (
                                     <MenuItem key={el.id} value={el.id}>{el.name}</MenuItem>
                                 ))}
                             </Select>
@@ -291,9 +305,9 @@ export default function ModalQuery({ showModal, setShowModal, id, reloadListFunc
                             <TextField
                                 required
                                 fullWidth
-                                value={phone}
-                                onChange={e => setPhone(e.target.value)}
-                                id="phone"
+                                value={patientPhone}
+                                onChange={e => setPatientPhone(e.target.value)}
+                                id="patientPhone"
                                 label="Telefone"
                                 variant="outlined"
                                 type="number"

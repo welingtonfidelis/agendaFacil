@@ -4,9 +4,9 @@ import { Restore, AssignmentInd, CalendarToday } from '@material-ui/icons';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-import Query from '../QueryList';
+import AppointmentsList from '../AppointmentsList';
 import Medic from '../Medic';
-import QueryCalendar from '../QueryCalendar';
+import AppointmentsCalendar from '../AppointmentsCalendar';
 
 import './styles.scss';
 
@@ -14,11 +14,11 @@ export default function Main() {
   const [value, setValue] = React.useState('queryCalendar');
 
   const SelectPage = () => {
-    let page = <QueryCalendar />
+    let page = <AppointmentsCalendar />
 
     switch (value) {
       case 'query':
-        page = <Query />
+        page = <AppointmentsList />
         break;
 
       case 'medic':
