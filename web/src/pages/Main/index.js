@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 import AppointmentsList from '../AppointmentsList';
-import Medic from '../Medic';
+import DoctorsList from '../DoctorsList';
 import AppointmentsCalendar from '../AppointmentsCalendar';
 
 import './styles.scss';
@@ -22,7 +22,7 @@ export default function Main() {
         break;
 
       case 'medic':
-        page = <Medic />
+        page = <DoctorsList />
         break;
 
       default:

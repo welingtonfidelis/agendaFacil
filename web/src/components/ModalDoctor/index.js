@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function ModalMedic({ 
+export default function ModalDoctor({ 
         showModal, setShowModal, id, 
         reloadListFunction, clearId
 }) {

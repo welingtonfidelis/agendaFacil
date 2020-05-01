@@ -33,12 +33,17 @@ module.exports = {
 
     async index(req, res) {
         try {
-            const { page = 1 } = req.query;
+            let { page } = req.query, limit = 10;
     
             const [count] = await connection('doctors').count();
+
+            if(!page) {
+                page = 1;
+                limit = count['count(*)'];
+            }
     
             const query = await connection('doctors')
-            .limit(10)
+            .limit(limit)
             .offset((page - 1) * 10)
             .orderBy('name', 'asc');
     

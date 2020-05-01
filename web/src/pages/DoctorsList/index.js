@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { IconButton } from '@material-ui/core';
 import { Delete, Edit } from '@material-ui/icons';
 import { TextField, Button } from '@material-ui/core';
+import { Pagination } from '@material-ui/lab';
 
-import ModalMedic from '../../components/ModalMedic';
+import ModalDoctor from '../../components/ModalDoctor';
 
 import Load from '../../components/Load';
 
@@ -14,29 +15,34 @@ import medicLogo from '../../assets/image/medic.png';
 
 import './styles.scss'
 
-export default function Medic() {
-    const [medicList, setMedicList] = useState([]);
-    const [medicListFull, setMedicListFull] = useState([]);
+export default function DoctorsList() {
+    const [doctorList, setDoctorList] = useState([]);
+    const [doctorListFull, setDoctorListFull] = useState([]);
     const [filter, setFilter] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [medicEditId, setMedicEditId] = useState(0);
+    const [page, setPage] = useState(1);
+    const [totalPage, setTotalPage] = useState(1);
 
     useEffect(() => {
         getListMedics();
 
-    }, []);
+    }, [page]);
 
     async function getListMedics() {
         setLoading(true);
         try {
-            const query = await api.get('doctors');
+            const query = await api.get('doctors', { params: { page }});
 
-            const { status } = query.data;
+            const { status, response, count } = query.data;
             if (status) {
-                const { response } = query.data;
-                setMedicList(response);
-                setMedicListFull(response);
+                let tmp = ((count['count(*)'])/10 + '').split('.');
+                tmp = tmp[1] ? parseInt(tmp[0]) + 1 : tmp[0];
+
+                setTotalPage(tmp);
+                setDoctorList(response);
+                setDoctorListFull(response);
             }
 
         } catch (error) {
@@ -84,7 +90,7 @@ export default function Medic() {
 
     useEffect(() => {
         if (filter !== '') {
-            const filtred = medicListFull.filter((obj) => {
+            const filtred = doctorListFull.filter((obj) => {
                 obj.search = (obj.name ? obj.name.toLowerCase() : '')
                     + ' ' + (obj.phone ? obj.phone.toLowerCase() : '')
                     + ' ' + (obj.checkIn ? obj.checkIn.toLowerCase() : '')
@@ -93,9 +99,9 @@ export default function Medic() {
                 return ((obj.search).indexOf(filter.toLowerCase()) > -1);
             })
 
-            setMedicList(filtred);
+            setDoctorList(filtred);
         }
-        else setMedicList(medicListFull);
+        else setDoctorList(doctorListFull);
     }, [filter]);
 
     return (
@@ -117,7 +123,7 @@ export default function Medic() {
                 <Button fullWidth className="btn-action" style={{ flex: 1 }} onClick={handleNewMedic}>Novo</Button>
             </div>
 
-            {medicList.map(item => {
+            {doctorList.map(item => {
                 return (
                     <div className="flex-row content-medic" key={item.id}>
                         <div className="content-medic-image">
@@ -159,7 +165,17 @@ export default function Medic() {
                     </div>
                 )
             })}
-            <ModalMedic
+
+            <div className="pagination">
+                <Pagination 
+                    count={totalPage} 
+                    color="primary" 
+                    value={page} 
+                    onChange={(e, p) => setPage(p)}
+                />
+            </div>
+
+            <ModalDoctor
                 showModal={showModal}
                 setShowModal={setShowModal}
                 id={medicEditId}

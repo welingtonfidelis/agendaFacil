@@ -51,27 +51,48 @@ module.exports = {
 
     async indexByDate(req, res) {
         try {
-            const { start, end, doctorId } = req.query;
+            let { start, end, doctorId, page } = req.query, query = null, limit = 10, count = 10;
 
-
-            let query = null;
             if(doctorId) {
+                [count] = await connection('appointments')
+                    .count()
+                    .whereBetween('date', [start, end])
+                    .where({ doctorId });
+
+                if(!page) {
+                    page = 1;
+                    limit = count['count(*)'];
+                }
+
                 query = await connection('appointments')
                     .whereBetween('date', [start, end])
                     .where({ doctorId })
                     .join('doctors', 'doctors.id', '=', 'appointments.doctorId')
                     .select(['appointments.*', 'doctors.name as doctorName'])
+                    .limit(limit)
+                    .offset((page - 1) * 10)
                     .orderBy('date', 'asc');
             }
             else {
+                [count] = await connection('appointments')
+                    .count()
+                    .whereBetween('date', [start, end])
+
+                if(!page) {
+                    page = 1;
+                    limit = count['count(*)'];
+                }
+
                 query = await connection('appointments')
                     .whereBetween('date', [start, end])
                     .join('doctors', 'doctors.id', '=', 'appointments.doctorId')
                     .select(['appointments.*', 'doctors.name as doctorName'])
+                    .limit(limit)
+                    .offset((page - 1) * 10)
                     .orderBy('date', 'asc');
             }
     
-            return res.json({status: true, response: query});
+            return res.json({status: true, response: query, count});
             
         } catch (error) {
             console.log(error);

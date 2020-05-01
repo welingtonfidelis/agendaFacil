@@ -7,6 +7,7 @@ import {
     TextField, Button, Select,
     InputLabel, MenuItem, FormControl
 } from '@material-ui/core';
+import { Pagination } from '@material-ui/lab';
 
 import ModalAppointment from '../../components/ModalAppointment';
 import Load from '../../components/Load';
@@ -34,6 +35,8 @@ export default function AppointmentsList() {
     const [dateStart, setDateStart] = useState(startOfMonth(new Date()));
     const [dateEnd, setDateEnd] = useState(endOfMonth(new Date()));
     const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [totalPage, setTotalPage] = useState(1);
     const classes = useStyles();
 
     useEffect(() => {
@@ -44,23 +47,29 @@ export default function AppointmentsList() {
     useEffect(() => {
         getListQuery();
 
-    }, [dateStart, dateEnd, doctorId]);
+    }, [dateStart, dateEnd, doctorId, page]);
 
     async function getListQuery() {
         setLoading(true);
 
         try {
             setEditId(0);
-            const query = await api.get(
-                `appointments/byDate` +
-                `?start=${format(dateStart, 'yyyy-MM-dd 00:00')}` +
-                `&end=${format(dateEnd, 'yyyy-MM-dd 23:59')}` +
-                `${doctorId > 0 ? `&doctorId=${doctorId}` : ''}`
-            );
 
-            const { status } = query.data;
+            const params = {
+                start: format(dateStart, 'yyyy-MM-dd 00:00'),
+                end: format(dateEnd, 'yyyy-MM-dd 23:59'),
+                page
+            }
+            if(doctorId > 0) params['doctorId'] = doctorId;
+
+            const query = await api.get( `appointments/byDate`, { params });
+
+            const { status, response, count } = query.data;
             if (status) {
-                const { response } = query.data;
+                let tmp = ((count['count(*)'])/10 + '').split('.');
+                tmp = tmp[1] ? parseInt(tmp[0]) + 1 : tmp[0];
+
+                setTotalPage(tmp);
                 setAppointmentList(response);
             }
             else swal.swalErrorInform(null, 'Houve um problema ao trazer a agenda de consultas.');
@@ -79,9 +88,8 @@ export default function AppointmentsList() {
         try {
             const query = await api.get('doctors');
 
-            const { status } = query.data;
+            const { status, response } = query.data;
             if (status) {
-                const { response } = query.data;
                 setDoctorList(response);
             }
 
@@ -202,7 +210,7 @@ export default function AppointmentsList() {
                                 <span>
                                     Paciente: <span className="content-text">{item.patientName}</span>
                                     &nbsp;
-                                    Contato: <span className="content-text">{item.patinetPhone}</span>
+                                    Contato: <span className="content-text">{item.patientPhone}</span>
                                 </span>
                                 <span>
                                     Médico: <span className="content-text">{item.doctorName}</span>
@@ -234,6 +242,16 @@ export default function AppointmentsList() {
                     </div>
                 )
             })}
+
+            <div className="pagination">
+                <Pagination 
+                    count={totalPage} 
+                    color="primary" 
+                    value={page} 
+                    onChange={(e, p) => setPage(p)}
+                />
+            </div>
+
             <ModalAppointment
                 showModal={showModal}
                 setShowModal={setShowModal}

@@ -99,3 +99,12 @@ input, .MuiInputBase-input, textarea {
     justify-content: space-between;
     margin: 10px 0 10px 0;
 }
+
+.pagination {
+    display: flex;
+    justify-content: center;
+}
+
+.pagination .MuiPaginationItem-textPrimary.Mui-selected {
+    background-color: #4caf50 !important;
+}
