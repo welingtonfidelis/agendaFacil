@@ -11,8 +11,8 @@ import './styles.scss';
 
 export default function Login({ history }) {
     const Logo = `${process.env.PUBLIC_URL}/logo.png`;
-    const [user, setUser] = useState('');
-    const [password, setpassWord] = useState('');
+    const [user, setUser] = useState('usuario1');
+    const [password, setpassWord] = useState('1234');
     const [errorLogin, setErrorLogin] = useState(false);
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
@@ -25,14 +25,13 @@ export default function Login({ history }) {
             const query = await api.post('sign', {login: user, password});
 
             const {status, response} = query.data;
-            console.log(response);
+
             if(status) {
                 dispatch({ 
                     type: 'UPDATE_USER', 
                     user: {name: response.name, token: response.token} 
                 });
 
-                setLoading(false);
                 history.push('/main');
                 return;
             }

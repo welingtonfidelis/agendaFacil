@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { BottomNavigation, BottomNavigationAction } from '@material-ui/core';
-import { Restore, AssignmentInd, CalendarToday, ExitToApp } from '@material-ui/icons';
+import { 
+  Restore, AssignmentInd, 
+  CalendarToday, ExitToApp, AccountCircle 
+} from '@material-ui/icons';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useSelector, useDispatch } from 'react-redux';
 
 import AppointmentsList from '../AppointmentsList';
 import DoctorsList from '../DoctorsList';
+import UsersList from '../UsersList';
 import AppointmentsCalendar from '../AppointmentsCalendar';
 
 import swal from '../../services/swal';
@@ -16,8 +20,8 @@ import './styles.scss';
 export default function Main({history}) {
   const userInfo = useSelector(state => state.data);
   const dispatch = useDispatch();
-  const [value, setValue] = React.useState('queryCalendar');
-  const [userName, setUserName] = useState(userInfo.name)
+  const [value, setValue] = useState('queryCalendar');
+  const userName = userInfo.name
 
   const SelectPage = () => {
     let page = <AppointmentsCalendar />
@@ -29,6 +33,10 @@ export default function Main({history}) {
 
       case 'medic':
         page = <DoctorsList />
+        break;
+      
+      case 'user':
+        page = <UsersList />
         break;
 
       default:
@@ -43,8 +51,6 @@ export default function Main({history}) {
   };
 
   async function logout() {
-    console.log('sair');
-
     const resp = await swal.swalConfirm(userName, 'Gostaria de sair do sistema?');
 
     if (resp) {
@@ -70,6 +76,7 @@ export default function Main({history}) {
           <BottomNavigationAction label="Consultas" value="query" icon={<Restore />} />
           <BottomNavigationAction label="Calendário" value="queryCalendar" icon={<CalendarToday />} />
           <BottomNavigationAction label="Médicos" value="medic" icon={<AssignmentInd />} />
+          <BottomNavigationAction label="Usuários" value="user" icon={<AccountCircle />} />
         </BottomNavigation>
       </div>
 

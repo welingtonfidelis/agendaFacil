@@ -1,0 +1,42 @@
+.content-medic {
+    align-items: center;
+    margin-bottom: 10px;
+    border: 1.5px solid #3f51b5;
+    border-radius: 8px;
+}
+
+.header-medic-content {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 10px;
+}
+
+.separator {
+    border-right: 1px solid #3f51b5;
+    margin: 0 10px 0 10px;
+}
+
+.content-medic-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    @extend .separator;
+}
+
+.content-medic-image img {
+    width: 60px;
+    height: 60px;
+    border: 1px solid #3f51b5;
+    padding: 2px;
+    border-radius: 50%;
+}
+
+.content-medic-info {
+    flex: 3;
+    @extend .separator;
+}
+
+.header-action-search {
+    margin-right: 10px;
+    flex: 5;
+}

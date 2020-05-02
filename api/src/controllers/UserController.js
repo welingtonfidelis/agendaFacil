@@ -98,13 +98,16 @@ module.exports = {
 
     async delete(req, res) {
         try {
-            const { id } = req.params;
-            
-            const query = await connection('users')
-            .where({ id })
-            .delete();
-
-            return res.json({status: true, response: query});
+            const { id } = req.params, { UserId} = req.body;
+                        
+            if(id != UserId) {
+                const query = await connection('users')
+                .where({ id })
+                .delete();
+    
+                return res.json({status: true, response: 'query'});
+            }
+            else return res.status(500).json({ status: false, response: 'error' });
             
         } catch (error) {
             console.log(error);
