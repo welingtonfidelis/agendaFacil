@@ -11,8 +11,8 @@ import './styles.scss';
 
 export default function Login({ history }) {
     const Logo = `${process.env.PUBLIC_URL}/logo.png`;
-    const [user, setUser] = useState('usuario1');
-    const [password, setpassWord] = useState('1234');
+    const [user, setUser] = useState('');
+    const [password, setpassWord] = useState('');
     const [errorLogin, setErrorLogin] = useState(false);
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();

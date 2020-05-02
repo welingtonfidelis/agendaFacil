@@ -200,11 +200,9 @@ export default function ModalAppointment({
                 { headers: { token }}
             );
 
-            const { status } = query.data;
+            const { status, response } = query.data;
 
-            if (status) {
-                const { response } = query.data;
-
+            if (status && response.length > 0) {
                 for (const el of response) {
                     if (!isEqual(new Date(el.date), new Date(dateTmp))
                         && isEqual(new Date(el.date), new Date(dateQuery))) {
