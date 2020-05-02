@@ -7,7 +7,7 @@ module.exports = {
     async sessionSign(req, res) {
         try {
             const { login, password } = req.body;
-            
+
             let [query] = await connection('users')
             .select('id', 'name', 'password')
             .where('login', 'like', login)
@@ -21,11 +21,12 @@ module.exports = {
                 if (isValid) {
                     const token = jwt.sign({ id, name }, process.env.SECRET, {
                         // expiresIn: '12h'
-                    })
+                    });
 
                     query = { name, token };
                     return res.json({status: true, response: query});
-                }
+                } 
+                else return res.status(200).json({ status: false, response: 'invalid login', code: 10 });
             } 
             else return res.status(500).json({ status: false, response: 'error' });
 

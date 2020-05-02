@@ -8,6 +8,7 @@ import {
     InputLabel, MenuItem, FormControl
 } from '@material-ui/core';
 import { Pagination } from '@material-ui/lab';
+import { useSelector } from 'react-redux';
 
 import ModalAppointment from '../../components/ModalAppointment';
 import Load from '../../components/Load';
@@ -27,6 +28,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function AppointmentsList() {
+    const userInfo = useSelector(state => state.data);
+    const token = userInfo.token;
     const [appointmentList, setAppointmentList] = useState([]);
     const [doctorList, setDoctorList] = useState([]);
     const [showModal, setShowModal] = useState(false);
@@ -60,13 +63,17 @@ export default function AppointmentsList() {
                 end: format(dateEnd, 'yyyy-MM-dd 23:59'),
                 page
             }
-            if(doctorId > 0) params['doctorId'] = doctorId;
+            if (doctorId > 0) params['doctorId'] = doctorId;
 
-            const query = await api.get( `appointments/byDate`, { params });
+            const query = await api.get(`appointments/byDate`,
+                {
+                    params,
+                    headers: { token }
+                });
 
             const { status, response, count } = query.data;
             if (status) {
-                let tmp = ((count['count(*)'])/10 + '').split('.');
+                let tmp = ((count['count(*)']) / 10 + '').split('.');
                 tmp = tmp[1] ? parseInt(tmp[0]) + 1 : tmp[0];
 
                 setTotalPage(tmp);
@@ -86,7 +93,7 @@ export default function AppointmentsList() {
         setLoading(true);
 
         try {
-            const query = await api.get('doctors');
+            const query = await api.get('doctors', { headers: { token } });
 
             const { status, response } = query.data;
             if (status) {
@@ -113,7 +120,7 @@ export default function AppointmentsList() {
         setEditId(0)
         setShowModal(true);
     }
-    
+
     function clearId() {
         setEditId(0);
     }
@@ -124,7 +131,7 @@ export default function AppointmentsList() {
         if (resp) {
             setLoading(true);
             try {
-                const query = await api.delete(`appointments/${id}`);
+                const query = await api.delete(`appointments/${id}`, { headers: { token } });
 
                 const { status } = query.data;
                 if (status) {
@@ -244,10 +251,10 @@ export default function AppointmentsList() {
             })}
 
             <div className="pagination">
-                <Pagination 
-                    count={totalPage} 
-                    color="primary" 
-                    value={page} 
+                <Pagination
+                    count={totalPage}
+                    color="primary"
+                    value={page}
                     onChange={(e, p) => setPage(p)}
                 />
             </div>

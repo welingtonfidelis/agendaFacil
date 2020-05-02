@@ -3,6 +3,7 @@ import { IconButton } from '@material-ui/core';
 import { Delete, Edit } from '@material-ui/icons';
 import { TextField, Button } from '@material-ui/core';
 import { Pagination } from '@material-ui/lab';
+import { useSelector } from 'react-redux';
 
 import ModalDoctor from '../../components/ModalDoctor';
 
@@ -16,6 +17,8 @@ import medicLogo from '../../assets/image/medic.png';
 import './styles.scss'
 
 export default function DoctorsList() {
+    const userInfo = useSelector(state => state.data);
+    const token = userInfo.token;
     const [doctorList, setDoctorList] = useState([]);
     const [doctorListFull, setDoctorListFull] = useState([]);
     const [filter, setFilter] = useState('');
@@ -33,11 +36,16 @@ export default function DoctorsList() {
     async function getListMedics() {
         setLoading(true);
         try {
-            const query = await api.get('doctors', { params: { page }});
+            const query = await api.get('doctors',
+                { 
+                    params: { page },
+                    headers: { token }
+                }
+            );
 
             const { status, response, count } = query.data;
             if (status) {
-                let tmp = ((count['count(*)'])/10 + '').split('.');
+                let tmp = ((count['count(*)']) / 10 + '').split('.');
                 tmp = tmp[1] ? parseInt(tmp[0]) + 1 : tmp[0];
 
                 setTotalPage(tmp);
@@ -72,7 +80,7 @@ export default function DoctorsList() {
         if (resp) {
             setLoading(true);
             try {
-                const query = await api.delete(`doctors/${id}`);
+                const query = await api.delete(`doctors/${id}`, { headers: { token } });
 
                 const { status } = query.data;
                 if (status) {
@@ -167,10 +175,10 @@ export default function DoctorsList() {
             })}
 
             <div className="pagination">
-                <Pagination 
-                    count={totalPage} 
-                    color="primary" 
-                    value={page} 
+                <Pagination
+                    count={totalPage}
+                    color="primary"
+                    value={page}
                     onChange={(e, p) => setPage(p)}
                 />
             </div>

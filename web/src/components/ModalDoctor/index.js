@@ -4,6 +4,7 @@ import {
     Modal, Backdrop, Fade, TextField, Button
 } from '@material-ui/core';
 import { format, compareAsc } from 'date-fns';
+import { useSelector } from 'react-redux';
 
 import api from '../../services/api';
 import swal from '../../services/swal';
@@ -26,10 +27,12 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function ModalDoctor({ 
-        showModal, setShowModal, id, 
-        reloadListFunction, clearId
+export default function ModalDoctor({
+    showModal, setShowModal, id,
+    reloadListFunction, clearId
 }) {
+    const userInfo = useSelector(state => state.data);
+    const token = userInfo.token;
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [checkIn, setCheckIn] = useState(format(new Date(), 'HH:mm'));
@@ -53,8 +56,8 @@ export default function ModalDoctor({
     async function getMedic() {
         setLoading(true);
         try {
-            const query = await api.get(`doctors/${id}`);
- 
+            const query = await api.get(`doctors/${id}`, { headers: { token } });
+
             const { status } = query.data;
             if (status) {
                 const { name, phone, checkIn, checkOut } = query.data.response;
@@ -90,8 +93,8 @@ export default function ModalDoctor({
                 }
 
                 let query = null;
-                if (id > 0) query = await api.put(`doctors/${id}`, { data });
-                else query = await api.post('doctors', { data });
+                if (id > 0) query = await api.put(`doctors/${id}`, { data }, { headers: { token } });
+                else query = await api.post('doctors', { data }, { headers: { token } });
 
                 if (query) {
                     swal.swalInform();
@@ -114,21 +117,21 @@ export default function ModalDoctor({
         setCheckIn(format(new Date(), 'HH:mm'));
         setCheckOut(format(new Date(), 'HH:mm'));
         setNameTmp(null);
-        if(clearId) clearId();
+        if (clearId) clearId();
     }
 
     function checkCheckInCheckOut() {
         let work = true;
 
-        if(compareAsc(new Date(`1990-07-28 ${checkIn}`),
-        new Date(`1990-07-28 ${checkOut}`) ) >= 0) {
+        if (compareAsc(new Date(`1990-07-28 ${checkIn}`),
+            new Date(`1990-07-28 ${checkOut}`)) >= 0) {
             work = false;
             swal.swalErrorInform(
-                null, 
+                null,
                 'O horário de entrada deve ser menor que o horário de saida.'
             );
         }
-        
+
         return work;
     }
 
@@ -137,13 +140,17 @@ export default function ModalDoctor({
 
         if (name !== nameTmp) {
             try {
-                const query = await api.get(`doctors/byName`, { params: { name }});
+                const query = await api.get(`doctors/byName`,
+                    {
+                        params: { name },
+                        headers: { token }
+                    });
 
                 const { status, response } = query.data;
                 if (status && response.length > 0) {
                     work = false;
                     swal.swalErrorInform(
-                        null, 
+                        null,
                         'Este nome já está sendo utilizado. Por favor, use outro nome'
                     );
                 }

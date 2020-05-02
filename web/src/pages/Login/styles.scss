@@ -1,0 +1,93 @@
+.body-login {
+    display: flex;
+    align-items: center;
+    height: calc(100vh - 42px);
+  }
+  
+  .content-login {
+    width: 100%;
+    background: #fff;
+    margin-top: 1vh;
+    border-radius: 4px;
+    padding: 30px;
+  }
+  
+  .content-login > img {
+    display: flex;
+    margin: auto;
+  }
+  
+  .content-login > p {
+    font-size: 18px;
+    line-height: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .content-login form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .content-login form label {
+    font-size: 14px;
+    color: #444;
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .content-login form label span {
+    font-weight: normal;
+    color: #999;
+    font-size: 12px;
+  }
+  
+  .content-login form input {
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    height: 45px;
+    padding: 0 15px;
+    font-size: 16px;
+  }
+  
+  .container-login {
+    margin: 2rem auto 0;
+    max-width: 450px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #0e78fa;
+    padding: 10px;
+    border-radius: 15px;
+  }
+  
+  .logo-login {
+    max-height: 140px;
+  }
+  
+  .invalid-login {
+    text-align: center;
+    margin-top: 10px;
+    color: red;
+  }
+
+  .back-link {
+    float: right;
+    margin-top: 5px;
+  }
+
+  .new-user-link {
+    margin-top: 60px;
+    text-align: center;
+  }
+
+  .new-user-link a {
+      text-decoration: none;
+      font-size: 20px;
+      color: #0e77fa;
+      text-transform: uppercase;
+  }

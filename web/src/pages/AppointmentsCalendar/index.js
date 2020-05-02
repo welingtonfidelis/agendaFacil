@@ -7,6 +7,7 @@ import {
     InputLabel, MenuItem, FormControl
 } from '@material-ui/core';
 import ReactHtmlParser from 'react-html-parser';
+import { useSelector } from 'react-redux';
 
 import ModalAppointment from '../../components/ModalAppointment';
 
@@ -25,6 +26,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function AppointmentsCalendar() {
+    const userInfo = useSelector(state => state.data);
+    const token = userInfo.token;
     const [appointmentList, setAppointmentList] = useState([]);
     const [doctorList, setDoctorList] = useState([]);
     const [showModal, setShowModal] = useState(false);
@@ -53,7 +56,8 @@ export default function AppointmentsCalendar() {
                 `appointments/byDate` +
                 `?start=${format(start,'yyyy-MM-dd 00:00')}` +
                 `&end=${format(end, 'yyyy-MM-dd 23:59')}` +
-                `${doctorId > 0 ? `&doctorId=${doctorId}` : ''}`
+                `${doctorId > 0 ? `&doctorId=${doctorId}` : ''}`,
+                { headers: { token }}
             );
 
             const { status } = query.data;
@@ -67,7 +71,7 @@ export default function AppointmentsCalendar() {
 
     async function getListMedics() {
         try {
-            const query = await api.get('doctors');
+            const query = await api.get('doctors', { headers: { token }});
 
             const { status } = query.data;
             if (status) {
@@ -78,7 +82,7 @@ export default function AppointmentsCalendar() {
             console.log(error);
             swal.swalErrorInform(
                 null,
-                'Houve um problem ao trazer a lista de médicos. Por favor, tente novamente'
+                'Houve um problema ao trazer a lista de médicos. Por favor, tente novamente'
             );
         }
     };

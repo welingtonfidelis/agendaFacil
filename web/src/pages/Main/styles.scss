@@ -3,11 +3,36 @@
 }
 
 .header-main {
-    height: 95px !important;
+    height: 130px !important;
 }
 .header-main-title {
     text-align: center;
     background: #fff;
-    border-bottom: 0.5px solid #466cd7;
+    // border-bottom: 0.5px solid #466cd7;
     padding: 5px 0 5px 0;
+}
+
+.container-user {
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+    background: #fff;
+    border-bottom: 1px solid #466cd7;
+}
+
+.container-user > h3 {
+    display: flex;
+    justify-content: center;
+}
+
+.container-user > h3 > span {
+    color: #476bd7;
+}
+
+.container-user > svg {
+    color: red;
+}
+
+.container-user > svg:hover {
+    cursor: pointer;
 }

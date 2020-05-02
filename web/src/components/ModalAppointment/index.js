@@ -4,10 +4,11 @@ import {
     Modal, Backdrop, Fade, TextField,
     Button, Select, InputLabel, MenuItem
 } from '@material-ui/core';
-import { 
-    format, addMinutes, subMinutes, 
-    isEqual, compareAsc 
+import {
+    format, addMinutes, subMinutes,
+    isEqual, compareAsc
 } from 'date-fns';
+import { useSelector } from 'react-redux';
 
 import Load from '../Load';
 
@@ -30,10 +31,12 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function ModalAppointment({ 
-        showModal, setShowModal, id, 
-        reloadListFunction, clearId
-    }) {
+export default function ModalAppointment({
+    showModal, setShowModal, id,
+    reloadListFunction, clearId
+}) {
+    const userInfo = useSelector(state => state.data);
+    const token = userInfo.token;
     const [patientName, setPatientName] = useState('');
     const [patientPhone, setPatientPhone] = useState('');
     const [doctorId, setDoctorId] = useState('');
@@ -57,13 +60,13 @@ export default function ModalAppointment({
     async function getListMedics() {
         setLoading(true);
         try {
-            const query = await api.get('doctors');
+            const query = await api.get('doctors', { headers: { token }});
 
             const { status } = query.data;
             if (status) {
                 const { response } = query.data;
                 setDoctorList(response);
-                if(response.length > 0) setDoctorId(response[0].id);
+                if (response.length > 0) setDoctorId(response[0].id);
             }
 
         } catch (error) {
@@ -79,7 +82,7 @@ export default function ModalAppointment({
     async function getQuery() {
         setLoading(true);
         try {
-            const query = await api.get(`appointments/${id}`);
+            const query = await api.get(`appointments/${id}`, { headers: { token }});
 
             const { status } = query.data;
             if (status) {
@@ -110,7 +113,7 @@ export default function ModalAppointment({
 
     async function handleSubmit(event) {
         event.preventDefault();
-        if(doctorId !== '') {
+        if (doctorId !== '') {
             if (checkHourMedic() && await checkDateQuery()) {
                 setLoading(true);
                 try {
@@ -120,18 +123,18 @@ export default function ModalAppointment({
                         date: format(new Date(`${date} ${hour}`), 'yyyy-MM-dd HH:mm'),
                         doctorId
                     }
-    
+
                     let query = null;
-                    if (id > 0) query = await api.put(`appointments/${id}`, { data });
-                    else query = await api.post('appointments', { data });
-    
+                    if (id > 0) query = await api.put(`appointments/${id}`, { data }, { headers: { token }});
+                    else query = await api.post('appointments', { data }, { headers: { token }});
+
                     if (query) {
                         swal.swalInform();
                         clearFields();
                         reloadListFunction();
                         handleClose();
                     }
-    
+
                 } catch (error) {
                     console.log(error);
                     swal.swalErrorInform();
@@ -149,7 +152,7 @@ export default function ModalAppointment({
         setDate(format(new Date(), 'yyyy-MM-dd'));
         setHour(format(new Date(), 'HH:mm'));
         setDateTmp(null);
-        if(clearId) clearId();
+        if (clearId) clearId();
     }
 
     function checkHourMedic() {
@@ -193,7 +196,8 @@ export default function ModalAppointment({
                 `appointments/byDate` +
                 `?start=${format(start, 'yyyy-MM-dd HH:mm')}` +
                 `&end=${format(end, 'yyyy-MM-dd HH:mm')}` +
-                `&doctorId=${doctorId}`
+                `&doctorId=${doctorId}`,
+                { headers: { token }}
             );
 
             const { status } = query.data;
