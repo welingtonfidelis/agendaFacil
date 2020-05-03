@@ -15,6 +15,7 @@ Construído com objetivo de atender necessidades de consultórios médicos em co
 Clonar este projeto, entrar na pasta "api" e executar o comando npm install ou yarn install através do terminal. Em seguida, ainda dentro da pasta "api", execute o comando "npx knex migrate:latest" para a criação do banco de dados local (src/database/sqlite.db). O sistema possui login obrigatório, considerando que o banco é criado com tabelas vazias, execute o comando "npx knex seed:run" para que um usuário padrão seja criado (usuário: usuario1, senha: 1234). O projeto utiliza [jsonwebtoken] para geração e validação de requisições através de tokens e, para uma melhor prática de segurança, uma senha deve ser criada em um arquivo .env dentro da raiz do projeto, como mostra o exemplo .env.example.  Por fim, execute o comando npm run start ou yarn start para que o servidor seja executado na porta 3001 (esta porta pode ser alterada no arquivi src/server.js).
 Para executar o front-end, entre na pasta "web", execute o comando npm istall ou yarn install, em seguida o comando npm start ou yarn start e aguarde até que uma página seja aberta em seu navegador padrão.
 * [obs] O banco escolhido inicialmente foi sqlite, mas a biblioteca [knex] permite a utilização de outros tipos de bancos sql, sendo necessário algumas poucas configurações partindo do arquivo knexfile.js na raíz do projeto.
+* [obs] O modelo de banco de dados utilizado é simples, contendo apenas as tabelas de usuário, médico e consulta ([modelo do banco de dados]). Você também pode testar apenas o back-end utilizando o [Insomnia] e importando [este modelo].
  
 ### Contato
 welingtonfidelis@gmail.com
@@ -35,4 +36,7 @@ MIT
 [versão anterior]: <https://github.com/welingtonfidelis/agendaConsulta>
 [jsonwebtoken]: <https://www.npmjs.com/package/jsonwebtoken>
 [knex]: <http://knexjs.org/>
+[modelo do banco de dados]: <https://drive.google.com/open?id=1sKbleFQ5b-jCaKwnHzkVUziCMR7iThJM>
+[Insomnia]: <https://insomnia.rest/>
+[este modelo]: <https://drive.google.com/open?id=1Uj_DzCsi5HjSgUa92GuPQO0v0PYI1mAw>
 ;
