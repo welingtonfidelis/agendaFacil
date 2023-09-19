@@ -5,7 +5,7 @@ exports.up = function(knex) {
         table.string('patientPhone').notNullable();
         table.date('date').notNullable();
 
-        table.string('doctorId').notNullable();
+        table.integer('doctorId').notNullable();
         table.foreign('doctorId').references('id').inTable('doctors');
     });
 };
